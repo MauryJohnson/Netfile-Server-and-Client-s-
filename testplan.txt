@@ -1,0 +1,47 @@
+1. For our first test case, we tried netserverinit("BADHOSTNAME",0). Our function prints out error, no such host and returns -1.
+
+
+
+//NETINIT CASES
+2. For our third test case, we tried netserverinit and then called netopen on a file called, "HUGE", and then called netseverinit on the same server and then called netopen on a file called, "HUGE". Also, we tested this same sequence on a directory, and the error number returned was ernno number 21 which was, "Is a directory".
+
+
+
+
+
+//NETOPEN CASES
+3. For our second test case, we tried netopen on a file before initializing the connection. We tested netopen("HUGE",1), and the return value is -1 and h_errno is set to 1 which corresponds to the error, "Unknown host".
+
+4. For our fourth test case, We opened file A in unrestricted mode and read only permission, B in exclusive mode and write only permission, and CC in transaction mode in read write permission. We then tested opening A in unrestricted mode and read only permission, and then A in exclusive mode and write only permission, and A in transaction mode and write only permission. For the first case of A, it added a new node to the list. For the second case of A, it added a new node to the list, and for the third case of A, it failed and returned -1 and errno number was set to 9 which was "Bad input".
+
+We then tested opening B in unrestricted mode and read only permission, and then B in exclusive mode and write only permission, and B in transaction mode and write only permission. For the first case of B, it added a new node to the list. For the second case of B, it returned -1 and errno was set to 9 which was, "Bad input", and for the third case of B, it failed and returned -1 and errno number was set to 9 which was "Bad input".
+
+We then tested opening CC in unrestricted mode and read only permission, and then CC in exclusive mode and write only permission, and CC in transaction mode and write only permission. For the first case of CC, it failed and returned -1 and  errno number was set to 9 which was "Bad input". For the second case of CC, it failed and returned -1 and errno number was set to 9 which was "Bad input", and for the third case of CC, it failed and returned -1 and  errno number was set to 9 which was "Bad input".
+
+
+
+
+//MODE CASES
+5. For our fifth test case, we tried to intialize connection with bad mode. The function netserverinit returns -1 and h_errno number was set to 500 which stated, "Invalid file mode".
+
+
+
+
+//PERMISSION CASES
+6.For our sixth test case, we tried to open file B on bad permission using netopen. The function netopen returns -1 and errno number was set to 13 which was, "Permission denied".
+
+7. For our seventh test case, we tried to open a file which had was set to chmod 000 HUGE. When trying to open this file, netopen returns -1 and errno number was set to 13 which was, "Permission denied".
+
+
+//NETREAD CASES
+8. For our eighth test case, we tried to open file HUGE and then read all bytes from it which was about 4061 bytes. The function netread returned the amount of bytes read from the file on success, which was 4061, and errno and h_errno were still 0.
+
+9. For our ninth test case, we tired to read from a file named HUGE that we finished reading from. The function netread returned 0 and errno and h_errno were still 0.
+
+10. For out tenth test case, we tried to read from a file before calling netserver init for the first time. netread returned -1 and h_errno was set to 1 which indicated, "Unknown host".
+
+
+11. We tested three separate clients on all of these cases and they worked correctly.
+
+ 
+
