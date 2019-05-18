@@ -13,6 +13,11 @@
 #include <time.h>
 #include <errno.h>
 #include <math.h>
+//#include "libnetfiles.h"
+
+#include <iostream>
+
+//using namespace std;
 
 char* toString(char* C);
 
@@ -248,7 +253,7 @@ printf("\nEND ALL LISTENING, SHOULD NEVER HAPPEN\n");
 
 printf("???");
 
-FreeL();
+//FreeL();
 
 return 0;
 }
@@ -263,7 +268,7 @@ printf("\n FILENAME PUSH: %s\n",FileName);
 //If there is no node, add a node with filename, permission, file descriptor, and mode.
 if(Head==NULL){
 
-(Head) = malloc(sizeof(Node));
+(Head) = (Node*)malloc(sizeof(Node));
 
 (Head)->FD = (fd);
 //printf("\n FILENAME PUSH: %s\n",FileName);
@@ -277,7 +282,7 @@ if(Head==NULL){
 }
 else{
 //Push to top, so push every other pointer down.
-Node* Q2 = malloc(sizeof(Node));
+Node* Q2 = (Node*)malloc(sizeof(Node));
 
 Q2->FD=(fd);
 Q2->FileName = FileName;
@@ -322,6 +327,10 @@ char Permission = (char)(((ThreadOpen*)argb)->Permission);
 char Mode = (char)(((ThreadOpen*)argb)->Mode);
 
 
+//printf("\n FILENAME:");
+
+//std::cout<<FileName<<std::endl;
+
 printf("\n PERMISSION: %c",Permission);
 
 int fd = 0;
@@ -331,6 +340,7 @@ int fd = 0;
 
 if(Mode=='2'){
 printf("\n\nMODE 2 BEFEOR SEARCH");
+
 //File Already opened
 if(SearchO(FileName)){
 printf("\nTransaction Mode Error! File Already Opened\n");
@@ -404,6 +414,7 @@ pthread_exit((void*)0);
 else{
 
 if( Permission == '0'){
+//printf("\n OPENNNNNNNN FileName:%s",FileName);
 fd = open(FileName,O_RDONLY);
 }
 
@@ -459,6 +470,8 @@ Node* Q = Head;
 
 while(Q!=NULL){
 Node*Q1=Q->Next;
+
+printf("\n FDL:%d",Q->FD);
 
 if(Q->FD==fd){
 return fd;
@@ -558,9 +571,10 @@ int f1 = ((ThreadClose*)argb)->FD;
 printf("\n SOCK:%d FD:%d\n",SOCK,f1);
 
 
+int f11 = f1;
+
 //Convert negative fd back to positive.
 f1=(f1*-1)-1;
-
 
 //Search read file descriptor.
 if(SearchR(f1)==0){
@@ -632,6 +646,8 @@ int SOCK = (int)(((ThreadRead*)args)->Socket);
 
 int fd = (int)(((ThreadRead*)args)->FD);
 
+printf("\n Effective FD:%d",fd);
+
 int BYTES = (int)(((ThreadRead*)args)->BYTES);
 
 
@@ -649,6 +665,9 @@ int length2=0;
 printf("\nSOCK:%d, FD:%d BYTES: %d",SOCK,fd,BYTES);
 
 printf("\n SEARCH, File Descriptor:%d HOW MANY: %d\n",A1,A3);
+
+
+int A11 = A1;
 
 //Convert FD
 A1=(A1*-1)-1;
@@ -761,7 +780,7 @@ return true;
 
 	printf("\nPTHREAD ACCEPT\n");
 
-	int new_socket = ((int)ARG);
+	int new_socket = ((int)((size_t)(ARG)));
 
 
 	printf("\nNEW SOCKET:%d\n",new_socket);
@@ -868,7 +887,7 @@ printf("\nPAFTER\n");
 
 	
 	char command = buffer[0];
-	printf("%s\n",buffer );
+	printf("BUFFER:%s\n",buffer );
 
 	printf("it worked\n");
 		
@@ -912,7 +931,7 @@ pthread_t * THandle = &thread00;
 
 //time(&RAW);
 
-int sock = (int)args;
+int sock = (int)((size_t)args);
 
 int Listen=1;
 
@@ -962,7 +981,7 @@ Listen = listen(sock,0);
 	//Accept error.
 	if(newsock<0){
 	printf("\nACCEPT ERROR:%s\n",strerror(errno));
-	return errno;
+	return (void*)errno;
 	}
 
 	//Found a socket connection!
@@ -1129,7 +1148,7 @@ char* toString(char* C){
 if(C==NULL){
 return NULL;
 }
-char* v = malloc((strlen(C)+1)*sizeof(char));
+char* v = (char*)malloc((strlen(C)+1)*sizeof(char));
 bzero(v,strlen(C)+1);
 //
 int i=0;
@@ -1212,17 +1231,22 @@ void o(char* buff, int size, int socket){		//o() accepts a buff, which is part o
 	char perm = buff[1];		//we can extract the permission and mode of the open already, which are the 2nd and third position in the 
 					//buffer respectively
 	char mode = buff[2];		
+
+ 	printf("\n size:%d",size);
 	
 	char* fileName = (char*)malloc( sizeof(char) * (size -2));	//we have to malloc a buffer for extracting the file name. we know that
 									//the buffer begins with 0 followed by perm and mode, so the size of 
 									//the file name is everything else
 		if(fileName == NULL)
 			exit(-1);
-	
+
+	bzero(fileName,size-2);	
+
 	strncpy(fileName, buff + 3, size - 3);			//extracting file name from buff to fileName
-	
+
+  	//printf("\n FILE:%c",fileName[0]);	
 						
-	ThreadOpen* T = malloc(sizeof(ThreadOpen));	
+	ThreadOpen* T = (ThreadOpen*)malloc(sizeof(ThreadOpen));	
 		if(T == NULL)
 			exit(-1);
 
@@ -1253,7 +1277,7 @@ void o(char* buff, int size, int socket){		//o() accepts a buff, which is part o
 void r(char* buff, int size,int socket){	//r() accepts a buff, which is part of the message sent from the client. Using the sent in size, r()
 						//processes said buff and extracts the needed info in order to do a read command
 
-
+	//printf("\n BUFFER:%s",buff);
 
 	int count = 1; // this is the count since we need to first extract the number of bytes to read which is the first thing in this part of
 			//message. From counts size, we can call strncpy() on the buff and write the number of bytes to numOfBytesToRead
@@ -1285,11 +1309,12 @@ void r(char* buff, int size,int socket){	//r() accepts a buff, which is part of 
 	
 
 		//at this portion, we have extracted all the needed info from the buffer
-	ThreadRead* T = malloc(sizeof(ThreadRead));
+	ThreadRead* T = (ThreadRead*)malloc(sizeof(ThreadRead));
 		if(T == NULL)
 			exit(-1);
 	T->Socket=socket;
 	int FD = atoi(fd);
+	printf("\n EFFECTIVE FD 1:%d",FD);
 	int BYTES = atoi(numOfBytesToRead);		//setting the T struct with said extracted info in order to send it to the read thread 
 							//which will then process the read command further
 	T->FD=FD;
@@ -1358,7 +1383,10 @@ void w(char* buff, int size, int socket){	//w() accepts a buff, which is part of
 	
 	//Now that we have count2, which marks the end of fd portion or the start of the buffer to be written. We can now extract said buffer from the
 		//mess and write that to mess
-	char* mess = (char*)malloc( sizeof(char) * (size - count2) );
+	//char* mess = (char*)malloc( sizeof(char) * (size - count2) );
+	
+	char mess[size-count2];
+
 		if(mess == NULL)
 			exit(-1);
 	strncpy( mess, buff + count2 + 1, size - count2 - 1);	//writing the message portion into mess
@@ -1368,7 +1396,7 @@ void w(char* buff, int size, int socket){	//w() accepts a buff, which is part of
 	int FD = atoi(fd);		//setting the extracted info into there int forms since this info must be plugged into the threadWrite struct
 	char * M = toString(mess);
 
-	ThreadWrite* T = malloc(sizeof(ThreadWrite));
+	ThreadWrite* T =(ThreadWrite*) malloc(sizeof(ThreadWrite));
 	
 	if(T == NULL)
 		exit(-1);
@@ -1397,7 +1425,7 @@ void w(char* buff, int size, int socket){	//w() accepts a buff, which is part of
 
 	free(fd);
 	free(numOfBytes);
-	free(mess);
+	//free(mess);
 }
 			
 
@@ -1420,7 +1448,7 @@ void cl(char* buff, int size, int socket){  //cl() takes in part of the message,
 	pthread_t thread1;
 	pthread_t * threadhandle0 = &thread1;
 
-	ThreadClose* T = malloc(sizeof(ThreadClose));
+	ThreadClose* T = (ThreadClose*)malloc(sizeof(ThreadClose));
 
 		if(T == NULL)			//creating the threadClose struct since we need to plug the needed info into this struct and
 						//send this to the close thread, which will further process the close command
